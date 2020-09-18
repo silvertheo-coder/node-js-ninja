@@ -19,6 +19,7 @@ mongoose.connect(dbConnect, { useNewUrlParser: true, useUnifiedTopology: true })
 
 // Middleware & static files.
 app.use(express.static('public'))
+app.use(express.urlencoded( { extend: true } ))
 
 // mongoose and mongo sandbox routes
 app.get('/add-blog', (req, res) => {
@@ -65,14 +66,33 @@ app.get('/single-blog', (req, res) => {
 app.set('view engine', 'ejs')
 // app.set('views', 'myviews');
 
+// routes
 app.get('/', (req, res) => {
-  const blogs = [
-    { title: 'Yoshi finds eggs', snippet: 'Lorem ipsum dolor sit amet consectetur' },
-    { title: 'Mario finds stars', snippet: 'Lorem ipsum dolor sit amet consectetur' },
-    { title: 'How to defeat bowser', snippet: 'Lorem ipsum dolor sit amet consectetur' }
-  ]
-  res.render('index', { title: 'Home', blogs })
+   res.redirect('/blogs');
+ });
+
+app.get('/blogs', (req, res) => {
+   Blog.find().sort({ createdAt: -1 })
+     .then(result => {
+       res.render('index', { blogs: result, title: 'All blogs' });
+     })
+     .catch(err => {
+       console.log(err);
+     });
+ });
+
+ app.post('/blogs', (req, res) => {    
+    const blog = new Blog( req.body )
+   //  save to the dataBase
+   blog.save()
+   .then((result) => {
+      res.redirect('/blogs')
+   })
+   .catch(err => {
+      console.log(err);
+    });
 })
+ 
 
 app.get('/about', (req, res) => {
   res.render('about', { title: 'About' })
